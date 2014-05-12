@@ -60,7 +60,7 @@ along with OSTIS.  If not, see <http://www.gnu.org/licenses/>.
 #include "scgtemplateobjectbuilder.h"
 #include "config.h"
 #include "scgundoview.h"
-
+#include "commands/scgcommandcreatepair.h"
 
 const QString SCgWindow::SupportedPasteMimeType = "text/KBE-gwf";
 
@@ -226,6 +226,25 @@ void SCgWindow::createToolBar()
     //
     mToolBar->addSeparator();
     //
+    // construction group button
+    QToolButton *constructionButton = new QToolButton(mToolBar);
+    constructionButton->setIcon(findIcon("tool-construction.png"));
+    constructionButton->setPopupMode(QToolButton::InstantPopup);
+    mToolBar->addWidget(constructionButton);
+
+    // Triple creation mode
+    action = new QAction(findIcon("tool-construction-triple.png"),tr("Triple creation mode"), mToolBar);
+    action->setCheckable(true);
+    constructionButton->addAction(action);
+    mMode2Action[SCgScene::Mode_Triple] = action;
+    connect(action, SIGNAL(triggered()), this, SLOT(onTripleMode()));
+
+    // Five creation mode
+    action = new QAction(findIcon("tool-construction-five.png"),tr("Five creation mode"), mToolBar);
+    action->setCheckable(true);
+    constructionButton->addAction(action);
+    mMode2Action[SCgScene::Mode_Five] = action;
+    connect(action, SIGNAL(triggered()), this, SLOT(onFiveMode()));
 
     // align group button
     QToolButton *alignButton = new QToolButton(mToolBar);
@@ -404,6 +423,20 @@ void SCgWindow::onContourMode()
 {
     static_cast<SCgScene*>(mView->scene())->setEditMode(SCgScene::Mode_Contour);
     mView->viewport()->setCursor(Qt::CrossCursor);
+    mView->setDragMode(QGraphicsView::NoDrag);
+}
+
+void SCgWindow::onTripleMode()
+{
+    static_cast<SCgScene*>(mView->scene())->setEditMode(SCgScene::Mode_Triple);
+    mView->viewport()->setCursor(Qt::ArrowCursor);
+    mView->setDragMode(QGraphicsView::NoDrag);
+}
+
+void SCgWindow::onFiveMode()
+{
+    static_cast<SCgScene*>(mView->scene())->setEditMode(SCgScene::Mode_Five);
+    mView->viewport()->setCursor(Qt::ArrowCursor);
     mView->setDragMode(QGraphicsView::NoDrag);
 }
 

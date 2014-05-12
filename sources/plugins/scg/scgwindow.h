@@ -189,6 +189,10 @@ private slots:
     void onSelectMode();
     //! Slot to handle a pair creation action
     void onPairMode();
+    //! Slot to handle a triple creation action
+    void onTripleMode();
+    //! Slot to handle a five creation action
+    void onFiveMode();
     //! Slot to handle a bus creation mode action
     void onBusMode();
     //! Slot to handle a contour creation mode action
