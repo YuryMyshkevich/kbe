@@ -113,6 +113,8 @@ private:
     SCgWindow *mWindow;
 
     bool isSceneRectControlled;
+    void executeChange(QString param);
+    QKeySequence choseShortCut(int index);
 
 signals:
     //! Emitted, when scale factor is changed.
