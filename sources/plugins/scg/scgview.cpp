@@ -82,6 +82,18 @@ SCgView::~SCgView()
 
 void SCgView::createActions()
 {
+    constShortcut = new QShortcut(QKeySequence(tr("Alt+C")), mWindow);
+    connect(constShortcut, SIGNAL(activated()), this, SLOT(chooseConstancy()));
+
+    posShortcut = new QShortcut(QKeySequence(tr("Alt+P")), mWindow);
+    connect(posShortcut, SIGNAL(activated()), this, SLOT(choosePositivity()));
+
+    permShortcut = new QShortcut(QKeySequence(tr("Alt+T")), mWindow);
+    connect(permShortcut, SIGNAL(activated()), this, SLOT(choosePermanence()));
+
+    permShortcut = new QShortcut(QKeySequence(tr("Alt+S")), mWindow);
+    connect(permShortcut, SIGNAL(activated()), this, SLOT(chooseStruct()));
+
     QAction* sep = new QAction(this);
     sep->setSeparator(true);
     mActionsList.append(sep);
@@ -599,4 +611,269 @@ void SCgView::updateSceneRect(const QRectF& rect)
 void SCgView::editModeChanged(int mode)
 {
     setContextMenuPolicy(mode == SCgScene::Mode_Select ? Qt::DefaultContextMenu : Qt::NoContextMenu);
+}
+
+void SCgView::chooseConstancy()
+{
+    QList <QGraphicsItem*> items = scene()->selectedItems();
+    if(items.size() == 1)
+        if(SCgObject::isSCgObjectType(items.first()->type()))
+            mContextObject = static_cast<SCgObject*>(items.first());
+
+    if(mContextObject &&( mContextObject->type() == SCgNode::Type ||  mContextObject->type() == SCgPair::Type) )
+    {
+        mContextMenu = new QMenu();
+        QAction* action = new QAction(tr("var"),this);
+        action->setCheckable(true);
+        action->setShortcut(QKeySequence(tr("V")));
+        connect(action, SIGNAL(triggered() ), this, SLOT(changeToVar()));
+
+        QAction* action2 = new QAction(tr("const"),mWindow);
+        action2->setShortcut(QKeySequence(tr("C")));
+        connect(action2, SIGNAL(triggered() ), this, SLOT(changeToConst()));
+
+        QList<QAction*> actions;
+        actions.append(action);
+        actions.append(action2);
+
+        mContextMenu->addActions(actions);
+        if(mContextObject->type() == SCgNode::Type)
+            mContextMenu->exec(mWindow->mapToGlobal( mContextObject->pos().toPoint() + QPoint(15,15)));
+        else
+            mContextMenu->exec(mWindow->mapToGlobal( mContextObject->boundingRect().center().toPoint() + QPoint(15,15)));
+    }
+}
+
+void SCgView::executeChange(QString type)
+{
+    QAction* action = new QAction(this);
+    action->setData(QVariant(type));
+    changeType(action);
+}
+
+void SCgView::changeToVar()
+{
+    QString type = mContextObject->typeAlias();
+    if(!type.contains("var"))
+    {
+        type.replace(type.indexOf("const"), 5, "var");
+        executeChange(type);
+    }
+}
+
+void SCgView::changeToConst()
+{
+    QString type = mContextObject->typeAlias();
+    if(!type.contains("const"))
+    {
+        type.replace(type.indexOf("var"), 3, "const");
+        executeChange(type);
+    }
+}
+
+void SCgView::choosePositivity()
+{
+    QList <QGraphicsItem*> items = scene()->selectedItems();
+    if(items.size() == 1)
+        if(SCgObject::isSCgObjectType(items.first()->type()))
+            mContextObject = static_cast<SCgObject*>(items.first());
+
+    if(mContextObject && mContextObject->type() == SCgPair::Type )
+    {
+        mContextMenu = new QMenu();
+
+        QAction* action = new QAction(tr("pos"),this);
+        action->setShortcut(QKeySequence(tr("P")));
+        connect(action, SIGNAL(triggered() ), this, SLOT(changeToPos()));
+
+        QAction* action1 = new QAction(tr("neg"),this);
+        action1->setShortcut(QKeySequence(tr("N")));
+        connect(action1, SIGNAL(triggered() ), this, SLOT(changeToNeg()));
+
+        QAction* action2 = new QAction(tr("fuz"),this);
+        action2->setShortcut(QKeySequence(tr("F")));
+        connect(action2, SIGNAL(triggered() ), this, SLOT(changeToFuz()));
+
+        QList<QAction*> actions;
+        actions.append(action);
+        actions.append(action1);
+        actions.append(action2);
+
+        mContextMenu->addActions(actions);
+        mContextMenu->exec(mWindow->mapToGlobal( mContextObject->boundingRect().center().toPoint() + QPoint(15,15)));
+   }
+}
+
+void SCgView::changeToPos()
+{
+    QString type = mContextObject->typeAlias();
+    if(!type.contains("pos"))
+    {
+        if(type.contains("neg"))
+            type.replace(type.indexOf("neg"), 3, "pos");
+        else
+            type.replace(type.indexOf("fuz"),3,  "pos");
+        executeChange(type);
+    }
+}
+
+void SCgView::changeToNeg()
+{
+    QString type = mContextObject->typeAlias();
+    if(!type.contains("neg"))
+    {
+        if(type.contains("pos"))
+            type.replace(type.indexOf("pos"), 3, "neg");
+        else
+            type.replace(type.indexOf("fuz"),3,  "neg");
+        executeChange(type);
+    }
+}
+
+void SCgView::changeToFuz()
+{
+    QString type = mContextObject->typeAlias();
+    if(!type.contains("fuz"))
+    {
+        if(type.contains("pos"))
+            type.replace(type.indexOf("pos"), 3, "fuz");
+        else
+            type.replace(type.indexOf("neg"), 3,  "fuz");
+        executeChange(type);
+    }
+}
+
+void SCgView::choosePermanence()
+{
+    QList <QGraphicsItem*> items = scene()->selectedItems();
+    if(items.size() == 1)
+        if(SCgObject::isSCgObjectType(items.first()->type()))
+            mContextObject = static_cast<SCgObject*>(items.first());
+
+    if(mContextObject && mContextObject->type() == SCgPair::Type )
+    {
+        mContextMenu = new QMenu();
+        QAction* action = new QAction(tr("perm"),this);
+        action->setShortcut(QKeySequence(tr("P")));
+        connect(action, SIGNAL(triggered() ), this, SLOT(changeToPerm()));
+
+        QAction* action1 = new QAction(tr("temp"),this);
+        action1->setShortcut(QKeySequence(tr("T")));
+        connect(action1, SIGNAL(triggered() ), this, SLOT(changeToTemp()));
+
+        QList<QAction*> actions;
+        actions.append(action);
+        actions.append(action1);
+
+        mContextMenu->addActions(actions);
+        mContextMenu->exec(mWindow->mapToGlobal( mContextObject->boundingRect().center().toPoint() + QPoint(15,15)));
+    }
+}
+
+void SCgView::changeToPerm()
+{
+    QString type = mContextObject->typeAlias();
+    if(!type.contains("perm"))
+    {
+        type.replace(type.indexOf("temp"), 4, "perm");
+        executeChange(type);
+    }
+}
+
+void SCgView::changeToTemp()
+{
+    QString type = mContextObject->typeAlias();
+    if(!type.contains("temp"))
+    {
+        type.replace(type.indexOf("perm"), 4, "temp");
+        executeChange(type);
+    }
+}
+
+void SCgView::chooseStruct()
+{
+    QList <QGraphicsItem*> items = scene()->selectedItems();
+    if(items.size() == 1)
+        if(SCgObject::isSCgObjectType(items.first()->type()))
+            mContextObject = static_cast<SCgObject*>(items.first());
+    if(mContextObject)
+    {
+        mContextMenu = new QMenu();
+        if( mContextObject->type() == SCgNode::Type  )
+        {
+            SCgAlphabet::SCgObjectTypesMap types;
+            SCgAlphabet::SCgObjectTypesMap::const_iterator iter;
+
+            if(mContextObject->typeAlias().contains("const"))
+              SCgAlphabet::getInstance().getObjectTypes("node", SCgAlphabet::Const, types);
+            else
+                SCgAlphabet::getInstance().getObjectTypes("node", SCgAlphabet::Var, types);
+
+            int i = 0;
+            for (iter = types.begin(); iter != types.end(); ++iter)
+            {
+                QAction* action = new QAction(iter.value(), iter.key(),this);
+                action->setShortcut(choseShortCut(i));
+                action->setData(QVariant(iter.key()));
+                mContextMenu->addAction(action);
+                i++;
+            }
+            connect(mContextMenu, SIGNAL(triggered(QAction*)) , this, SLOT(changeType(QAction*)));
+            mContextMenu->exec(mWindow->mapToGlobal( mContextObject->pos().toPoint() + QPoint(15,15)));
+            types.clear();
+        }
+        if( mContextObject->type() == SCgPair::Type  )
+        {
+            QAction* action = new QAction(tr("acsessory"),this);
+            action->setCheckable(true);
+            action->setShortcut(QKeySequence(tr("P")));
+            connect(action, SIGNAL(triggered() ), this, SLOT(changeToAccessory()));
+
+            QAction* action2 = new QAction(tr("binary"),mWindow);
+            action2->setShortcut(QKeySequence(tr("B")));
+            connect(action2, SIGNAL(triggered() ), this, SLOT(changeToBinary()));
+
+            QList<QAction*> actions;
+            actions.append(action);
+            actions.append(action2);
+
+            mContextMenu->addActions(actions);
+            mContextMenu->exec(mWindow->mapToGlobal( mContextObject->boundingRect().center().toPoint() + QPoint(15,15)));
+        }
+
+    }
+}
+
+void SCgView::changeToBinary()
+{
+    QString type = mContextObject->typeAlias();
+    if(type.contains("const"))
+       type.replace(type.indexOf("const") + 6, type.length(), "-/-/orient");
+    else
+       type.replace(type.indexOf("var") + 4, type.length(), "-/-/orient");
+    executeChange(type);
+}
+void SCgView::changeToAccessory()
+{
+    QString type = mContextObject->typeAlias();
+    if(type.contains("const"))
+        type.replace(type.indexOf("const") + 6, type.length(), "pos/perm/orient/accessory");
+     else
+        type.replace(type.indexOf("var") + 4, type.length(), "pos/perm/orient/accessory");
+     executeChange(type);
+}
+
+QKeySequence SCgView::choseShortCut(int index)
+{
+    switch(index)
+    {
+        case 0: return QKeySequence(Qt::Key_1);
+        case 1: return QKeySequence(Qt::Key_2);
+        case 2: return QKeySequence(Qt::Key_3);
+        case 3: return QKeySequence(Qt::Key_4);
+        case 4: return QKeySequence(Qt::Key_5);
+        case 5: return QKeySequence(Qt::Key_6);
+        case 6: return QKeySequence(Qt::Key_7);
+        case 7: return QKeySequence(Qt::Key_8);
+    }
 }

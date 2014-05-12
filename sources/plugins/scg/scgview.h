@@ -24,6 +24,7 @@ along with OSTIS.  If not, see <http://www.gnu.org/licenses/>.
 #define SCGVIEW_H
 
 #include <QGraphicsView>
+#include <QShortcut>
 
 class SCgWindow;
 class SCgObject;
@@ -89,6 +90,9 @@ private:
     QList<QAction*> mActionsList;
     void createActions();
 
+    QShortcut* constShortcut;
+    QShortcut* posShortcut;
+    QShortcut* permShortcut;
 private slots:
     //! Update state of actions created by createActions() command.
     void updateActionsState(int idx = 0);
@@ -158,6 +162,23 @@ private slots:
 
     //! Edit mode changed slot @see SCgScene::editModeChanged
     void editModeChanged(int mode);
+
+    void chooseConstancy();
+    void changeToVar();
+    void changeToConst();
+
+    void choosePositivity();
+    void changeToPos();
+    void changeToNeg();
+    void changeToFuz();
+
+    void choosePermanence();
+    void changeToPerm();
+    void changeToTemp();
+
+    void chooseStruct();
+    void changeToBinary();
+    void changeToAccessory();
 };
 
 #endif // SCGVIEW_H
